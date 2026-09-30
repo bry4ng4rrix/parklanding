@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Park Automobile — Drive beyond ordinary',
-  description: 'A curated collection of exceptional automobiles for those who choose their own horizon.',
+  title: 'ParcAuto — Gestion de parc roulant',
+  description: 'Véhicules routiers et engins de chantier, conducteurs, missions, coûts et chantiers : un seul système pour piloter tout le parc.',
 }
 
 export const viewport: Viewport = {
