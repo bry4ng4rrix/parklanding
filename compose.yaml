@@ -1,0 +1,9 @@
+# Lancement local : docker compose up -d --build  →  http://localhost:3003
+services:
+  parklanding:
+    build: .
+    image: parklanding:local
+    container_name: parklanding
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
