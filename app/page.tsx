@@ -4,21 +4,21 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type Pointer
 import { ArrowDownRight, ArrowRight, Check, Menu, X } from 'lucide-react'
 import { LiveMap } from '@/components/live-map'
 
-const heroImage = '/images/park-hero-loader.png'
-// heroImage (agrandi ×3) découpé en calques : la route seule, la chargeuse détourée (avec son ombre), son barbotin et son galet remis à plat pour pouvoir tourner
-const heroScene = { road: '/images/park-hero-loader-road.webp', machine: '/images/park-hero-loader-machine.webp', sprocket: '/images/park-hero-loader-sprocket.png', roller: '/images/park-hero-loader-roller.png' }
+const heroImage = '/images/park-hero-tractor.webp'
+// Tracteur à lame détouré (avec son ombre au sol), posé sur le fond de la vue éclatée ; son moyeu avant, remis à plat, tourne à part
+const heroScene = { machine: heroImage, hub: '/images/park-hero-tractor-hub.png' }
 const heroHeadline = [{ text: 'Votre flotte.', em: false }, { text: 'en mouvement.', em: true }]
-// Avant de la chargeuse, mesuré sur le calque machine (fractions de sa largeur/hauteur) : pour 40 tranches horizontales, abscisse du premier pixel du godet ou du bras (null : rien devant, seulement la cabine)
-const machineFront = [null, null, null, null, null, null, null, null, .451, .433, .42, .415, .414, .413, .348, .271, .17, .164, .137, .138, .143, .139, .135, .13, .126, .121, .117, .112, .109, .105, .097, .08, .062, .03, .006, .04, .114, .21, .276, .338]
-const machineArm = .42 // avant du bras : les mots situés derrière ne sont pas ramassés
-const bucketHeap = { x: .27, floor: .84, gap: [.024, .034], rows: [8, 7, 5, 3, 1] } // tas de lettres au fond du godet : centre, sol, écarts et nombre de lettres par rangée (de bas en haut)
+// Avant du tracteur, mesuré sur son calque (fractions de sa largeur/hauteur) : pour 40 tranches horizontales, abscisse du premier pixel de l'engin (null : rien à cette hauteur)
+const machineFront = [null, .536, .435, .325, .312, .309, .304, .273, .273, .273, .274, .278, .256, .19, .179, .182, .186, .191, .197, .155, .116, .09, .04, .033, .036, .043, .047, .047, .043, .04, .029, .016, .016, .088, .114, .171, .422, .528, null, null]
+const machineArm = .4 // arrière de la lame : les mots déjà derrière ne sont pas poussés
+const bladeHeap = { x: .2, floor: .8, gap: [.05, .06], rows: [8, 7, 5, 3, 1], scale: .28 } // tas de lettres poussées contre la lame : centre, sol, écarts, lettres par rangée (de bas en haut) et taille finale
 const heapSlot = (rank: number) => {
   let row = 0, first = 0
-  while (rank >= first + (bucketHeap.rows[row] ?? 1)) { first += bucketHeap.rows[row] ?? 1; row++ }
-  const count = bucketHeap.rows[row] ?? 1
-  return { x: bucketHeap.x + (rank - first - (count - 1) / 2) * bucketHeap.gap[0], y: bucketHeap.floor - row * bucketHeap.gap[1] }
+  while (rank >= first + (bladeHeap.rows[row] ?? 1)) { first += bladeHeap.rows[row] ?? 1; row++ }
+  const count = bladeHeap.rows[row] ?? 1
+  return { x: bladeHeap.x + (rank - first - (count - 1) / 2) * bladeHeap.gap[0], y: bladeHeap.floor - row * bladeHeap.gap[1] }
 }
-const machineTravel = .52 + .03 // recul du bord gauche de .hero-machine à --drive = 1 (translation de 52% + agrandissement de 6% autour de son centre)
+const machineTravel = 1.15 + .04 // recul du bord gauche de .hero-machine à --drive = 1 (translation de 115% + agrandissement de 8% autour de son centre)
 
 // Contenu tiré de PRESENTATION.md
 const pilotage = [
@@ -146,8 +146,8 @@ export default function Page() {
     return () => observer.disconnect()
   }, [])
 
-  // La chargeuse avance vers la gauche à mesure que le hero défile : --drive (0 → 1) pilote sa position et la rotation du barbotin et du galet, --dust la poussière.
-  // Son godet ramasse au passage les lettres du titre qui sont devant le bras : chaque lettre part quand l'avant de l'engin l'atteint, retombe dans le godet et repart avec lui.
+  // Le tracteur avance vers la gauche à mesure que le hero défile : --drive (0 → 1) pilote sa position et la rotation du moyeu, --dust la poussière.
+  // Il pousse au passage les lettres du titre qu'il rencontre : chaque lettre part quand l'avant de l'engin l'atteint, s'entasse contre la lame et avance avec lui.
   useEffect(() => {
     const hero = heroRef.current
     const machine = hero?.querySelector<HTMLElement>('.hero-machine')
@@ -167,21 +167,21 @@ export default function Page() {
       letters = words.flatMap((word) => {
         const origin = inHero(word)
         const front = machineFront[Math.floor((origin.y + word.offsetHeight / 2 - rest.top) / rest.height * machineFront.length)]
-        if (front == null || origin.x + word.offsetWidth / 2 > arm) return [] // hors du chemin du godet ou déjà derrière le bras : le mot reste en place
+        if (front == null || origin.x + word.offsetWidth / 2 > arm) return [] // hors du chemin de l'engin ou déjà derrière la lame : le mot reste en place
         const edge = rest.left + front * rest.width
         return [...word.children].map((child, i) => {
           const el = child as HTMLElement, { x, y } = inHero(el), right = x + el.offsetWidth, seed = origin.x + origin.y + i
-          // distance que l'engin doit parcourir avant de toucher la lettre : par le godet si elle est devant lui, sinon par le bras
+          // distance que l'engin doit parcourir avant de toucher la lettre : par son avant si elle est devant lui, sinon par l'arrière de la lame
           const contact = right <= edge ? edge - right : Math.max(0, arm - right)
           return { el, x: x + el.offsetWidth / 2, y: y + el.offsetHeight / 2, contact, slotX: (random(seed) - .5) * .008, slotY: (random(seed + 7) - .5) * .008, spin: (random(seed + 3) - .5) * 60, lift: 40 + random(seed + 5) * 60 }
         })
       })
-      // les premières lettres ramassées tombent au fond, les suivantes s'empilent par-dessus
+      // les premières lettres poussées tombent au pied de la lame, les suivantes s'empilent par-dessus
       const pickupOrder = [...letters].sort((a, b) => a.contact - b.contact)
       pickupOrder.forEach((letter, rank) => { const slot = heapSlot(rank); letter.slotX += slot.x; letter.slotY += slot.y })
     }
 
-    // Place les lettres ramassées ; renvoie true tant que le godet en transporte (elles doivent suivre la dérive lente de l'image)
+    // Place les lettres poussées ; renvoie true tant que la lame en pousse (elles doivent suivre la dérive lente de l'image)
     const place = () => {
       const live = machineBox(), moved = current * machineTravel * rest.width
       let carrying = false
@@ -191,7 +191,7 @@ export default function Page() {
         carrying = true
         const e = p < .5 ? 4 * p ** 3 : 1 - (2 - 2 * p) ** 3 / 2
         const dx = live.left + letter.slotX * live.width - letter.x, dy = live.top + letter.slotY * live.height - letter.y
-        letter.el.style.transform = `translate3d(${dx * e}px, ${dy * e - letter.lift * Math.sin(Math.PI * e)}px, 0) rotate(${letter.spin * e}deg) scale(${1 - .58 * e})`
+        letter.el.style.transform = `translate3d(${dx * e}px, ${dy * e - letter.lift * Math.sin(Math.PI * e)}px, 0) rotate(${letter.spin * e}deg) scale(${1 - (1 - bladeHeap.scale) * e})`
         letter.el.style.opacity = String(1 - .15 * e)
         letter.el.style.pointerEvents = 'none' // une lettre qui passe au-dessus des boutons ne doit pas bloquer le clic
       })
@@ -282,11 +282,10 @@ export default function Page() {
     <main className="park-page">
       <section className="hero" id="accueil" ref={heroRef}>
         <div className="hero-image" aria-hidden="true">
-          <div className="hero-scene" style={{ backgroundImage: `url(${heroScene.road})` }}>
+          <div className="hero-scene">
             <div className="hero-machine" style={{ backgroundImage: `url(${heroScene.machine})` }}>
               <span className="hero-dust" />
-              <span className="hero-wheel hero-wheel-roller" style={{ backgroundImage: `url(${heroScene.roller})` }} />
-              <span className="hero-wheel hero-wheel-sprocket" style={{ backgroundImage: `url(${heroScene.sprocket})` }} />
+              <span className="hero-wheel hero-wheel-hub" style={{ backgroundImage: `url(${heroScene.hub})` }} />
             </div>
           </div>
         </div>
