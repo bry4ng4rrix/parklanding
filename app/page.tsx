@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type PointerEvent, type KeyboardEvent } from 'react'
 import { ArrowDownRight, ArrowRight, Check, Menu, X } from 'lucide-react'
 import { LiveMap } from '@/components/live-map'
+import { MissionDemo } from '@/components/mission-demo'
 
 const heroImage = '/images/park-hero-tractor.webp'
 // Tracteur à lame détouré (avec son ombre au sol), posé sur le fond de la vue éclatée ; son moyeu avant, remis à plat, tourne à part
@@ -301,6 +302,7 @@ export default function Page() {
             <a href="#parc">Parc</a>
             <a href="#chantiers">Chantiers</a>
             <a href="#carte">Carte</a>
+            <a href="#missions">Missions</a>
             <a href="#pilotage">Pilotage</a>
             <a href="#applications">Applications</a>
           </nav>
@@ -314,6 +316,7 @@ export default function Page() {
           <a href="#parc" onClick={() => setMenuOpen(false)}>Parc <ArrowRight size={14} /></a>
           <a href="#chantiers" onClick={() => setMenuOpen(false)}>Chantiers <ArrowRight size={14} /></a>
           <a href="#carte" onClick={() => setMenuOpen(false)}>Carte <ArrowRight size={14} /></a>
+          <a href="#missions" onClick={() => setMenuOpen(false)}>Missions <ArrowRight size={14} /></a>
           <a href="#pilotage" onClick={() => setMenuOpen(false)}>Pilotage <ArrowRight size={14} /></a>
           <a href="#applications" onClick={() => setMenuOpen(false)}>Applications <ArrowRight size={14} /></a>
           <a href="#contact" onClick={() => setMenuOpen(false)}>Demander une démo <ArrowRight size={14} /></a>
@@ -327,7 +330,7 @@ export default function Page() {
         </div>
 
         <div className="hero-content">
-          <p className="eyebrow"><span className="eyebrow-line" /> 01 / 09 <span className="eyebrow-label">Gestion de parc roulant</span></p>
+          <p className="eyebrow"><span className="eyebrow-line" /> 01 / 10 <span className="eyebrow-label">Gestion de parc roulant</span></p>
           <h1>
             <span className="sr-only">{heroHeadline.map((line) => line.text).join(' ')}</span>
             {heroHeadline.map(({ text, em }) => {
@@ -351,7 +354,7 @@ export default function Page() {
 
       <section className="fleet-section reveal-on-scroll" id="parc" aria-labelledby="fleet-title">
         <div className="fleet-section-heading">
-          <div><p className="section-kicker"><span>02 / 09</span><span className="kicker-line" /><span>Le parc et son exploitation</span></p><h2 id="fleet-title">Une vision<br /><em>en profondeur.</em></h2></div>
+          <div><p className="section-kicker"><span>02 / 10</span><span className="kicker-line" /><span>Le parc et son exploitation</span></p><h2 id="fleet-title">Une vision<br /><em>en profondeur.</em></h2></div>
           <p>Chaque véhicule porte sa fiche technique, ses compteurs, ses documents et ses photos. Autour de lui : missions, affectations, pleins, maintenances, incidents, documents à échéance et équipements de bord.</p>
         </div>
         <div className="fleet-stage">
@@ -369,7 +372,7 @@ export default function Page() {
       </section>
 
       <section className="intro-section reveal-on-scroll" id="plateforme">
-        <div className="section-kicker"><span>03 / 09</span><span className="kicker-line" /><span>Une vision claire du terrain</span></div>
+        <div className="section-kicker"><span>03 / 10</span><span className="kicker-line" /><span>Une vision claire du terrain</span></div>
         <div className="intro-grid">
           <h2>La route avance.<br /><em>Votre vision aussi.</em></h2>
           <div className="intro-copy"><p>ParcAuto gère le parc roulant de bout en bout. Les engins de chantier se mesurent en heures moteur, les véhicules routiers en kilomètres : une distinction qui traverse tout le système, du calcul de consommation au coût d&apos;usage.</p><a className="dark-link" href="#chantiers">Voir les chantiers <ArrowRight size={16} /></a></div>
@@ -380,7 +383,7 @@ export default function Page() {
       <section className="explode-section" id="chantiers" ref={chantiersRef} aria-labelledby="chantiers-title">
         <div className="explode-sticky">
           <div className="explode-copy">
-            <p className="section-kicker"><span>04 / 09</span><span className="kicker-line" /><span>Les chantiers</span></p>
+            <p className="section-kicker"><span>04 / 10</span><span className="kicker-line" /><span>Les chantiers</span></p>
             <h2 id="chantiers-title">Chaque engin,<br /><em>pièce par pièce.</em></h2>
             <p className="explode-lead">Un chantier réunit des véhicules et des conducteurs sur une période datée. Le suivi de terrain s&apos;appuie sur ce que le GPS sait déjà.</p>
             <ol className="explode-steps">{chantierSteps.map((step, i) => <li key={step.title} className={i === 0 ? 'is-active' : ''}><span>0{i + 1}</span><div><strong>{step.title}</strong><p>{step.text}</p></div></li>)}</ol>
@@ -407,7 +410,7 @@ export default function Page() {
 
       <section className="tracking-section reveal-on-scroll" id="carte">
         <div className="fleet-section-heading">
-          <div><p className="section-kicker"><span>05 / 09</span><span className="kicker-line" /><span>Suivi en temps réel</span></p><h2>Tout le parc,<br /><em>en direct sur la carte.</em></h2></div>
+          <div><p className="section-kicker"><span>05 / 10</span><span className="kicker-line" /><span>Suivi en temps réel</span></p><h2>Tout le parc,<br /><em>en direct sur la carte.</em></h2></div>
           <p>Les boîtiers GPS remontent la position de chaque véhicule et de chaque engin. La carte se met à jour d&apos;elle-même, et chacun n&apos;y voit que les véhicules qui le concernent.</p>
         </div>
         <LiveMap />
@@ -415,13 +418,13 @@ export default function Page() {
       </section>
 
       <section className="features-section reveal-on-scroll" id="pilotage">
-        <div className="section-heading"><div><p className="eyebrow dark"><span className="eyebrow-line" /> 06 / 09 · Le pilotage</p><h2>Des chiffres,<br /><em>pas des impressions.</em></h2></div><p>La partie qui répond aux questions de direction. Dix-neuf types de rapports, exportables en PDF et en Excel, diffusés automatiquement par courriel sur abonnement.</p></div>
+        <div className="section-heading"><div><p className="eyebrow dark"><span className="eyebrow-line" /> 06 / 10 · Le pilotage</p><h2>Des chiffres,<br /><em>pas des impressions.</em></h2></div><p>La partie qui répond aux questions de direction. Dix-neuf types de rapports, exportables en PDF et en Excel, diffusés automatiquement par courriel sur abonnement.</p></div>
         <div className="feature-grid feature-grid-wide">{pilotage.map((feature) => <article className="feature-card" key={feature.number}><div className="feature-top"><span>{feature.number}</span><span className="feature-icon">{feature.icon}</span></div><h3>{feature.title}</h3><p>{feature.text}</p><a href="#contact" aria-label={`En savoir plus sur ${feature.title}`}><ArrowRight size={16} /></a></article>)}</div>
         <div className="report-strip"><strong>19</strong><span>types de rapports</span><span>PDF</span><span>Excel</span><span>Diffusion par courriel sur abonnement</span></div>
       </section>
 
       <section className="rules-section reveal-on-scroll" id="conformite">
-        <div className="section-kicker"><span>07 / 09</span><span className="kicker-line" /><span>Conformité et échanges</span></div>
+        <div className="section-kicker"><span>07 / 10</span><span className="kicker-line" /><span>Conformité et échanges</span></div>
         <h2>Rien ne démarre<br /><em>hors des règles.</em></h2>
         <div className="rules-grid">
           <article>
@@ -438,10 +441,15 @@ export default function Page() {
         </div>
       </section>
 
+      <section className="mission-section reveal-on-scroll" id="missions">
+        <div className="section-heading"><div><p className="eyebrow dark"><span className="eyebrow-line" /> 08 / 10 · Une mission, de bout en bout</p><h2>Déclarée au bureau,<br /><em>reçue sur le terrain.</em></h2></div><p>Le responsable de parc déclare la mission, les contrôles bloquants passent, le conducteur la reçoit sur son téléphone. Ensuite, tout le monde échange dans le fil de la mission.</p></div>
+        <MissionDemo />
+      </section>
+
       <section className="apps-section reveal-on-scroll" id="applications">
         <div className="apps-image" style={{ backgroundImage: `url(${appsImage})` }} aria-hidden="true"><span>Déclaration de plein et d&apos;incident depuis le terrain</span></div>
         <div className="apps-content">
-          <p className="section-kicker"><span>08 / 09</span><span className="kicker-line" /><span>Les applications clientes</span></p>
+          <p className="section-kicker"><span>09 / 10</span><span className="kicker-line" /><span>Les applications clientes</span></p>
           <h2>Trois applications,<br /><em>un seul parc.</em></h2>
           <div className="apps-list">{apps.map((app, i) => <article key={app.name}><span>0{i + 1}</span><div><h3>{app.name}</h3><small>{app.audience}</small></div><p>{app.text}</p></article>)}</div>
           <div className="apps-safeguards">{appSafeguards.map((item) => <div key={item.title}><strong>{item.title}</strong><p>{item.text}</p></div>)}</div>
@@ -449,7 +457,7 @@ export default function Page() {
       </section>
 
       <section className="roles-section reveal-on-scroll" id="roles">
-        <div className="section-heading"><div><p className="eyebrow dark"><span className="eyebrow-line" /> 09 / 09 · Qui voit quoi</p><h2>Neuf rôles,<br /><em>un seul arbitre.</em></h2></div><p>Chacun voit ce qui le concerne, rien de plus, y compris sur la carte et les écrans en temps réel.</p></div>
+        <div className="section-heading"><div><p className="eyebrow dark"><span className="eyebrow-line" /> 10 / 10 · Qui voit quoi</p><h2>Neuf rôles,<br /><em>un seul arbitre.</em></h2></div><p>Chacun voit ce qui le concerne, rien de plus, y compris sur la carte et les écrans en temps réel.</p></div>
         <div className="roles-grid">{roles.map((role, i) => <div key={role.name}><span>{String(i + 1).padStart(2, '0')}</span><strong>{role.name}</strong><p>{role.scope}</p></div>)}</div>
       </section>
 
