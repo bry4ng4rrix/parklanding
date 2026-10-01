@@ -80,17 +80,32 @@ jobs:
     steps:
       - name: Clé SSH
         env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
+          failed=0
+          require() { [ -n "$2" ] || { echo "::error::Secret $1 absent ou vide (Settings → Secrets and variables → Actions → Repository secrets)"; failed=1; }; }
+          require VPS_HOST "$VPS_HOST"; require VPS_USER "$VPS_USER"; require VPS_SSH_KEY "$SSH_KEY"; require VPS_KNOWN_HOSTS "$KNOWN_HOSTS"
+          [ "$failed" = 0 ] || exit 1
+
+          # tolère les espaces, les fins de ligne Windows et un « utilisateur@ » collé dans VPS_HOST
+          host=$(printf '%s' "$VPS_HOST" | tr -d '[:space:]'); host=${host#*@}
+          user=$(printf '%s' "$VPS_USER" | tr -d '[:space:]')
+          echo "::add-mask::$host"
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          ssh-keygen -F "$host" -f ~/.ssh/known_hosts > /dev/null || {
+            echo "::error::VPS_KNOWN_HOSTS ne contient aucune empreinte pour VPS_HOST : y coller la sortie complète de « ssh-keyscan <adresse du VPS> », avec la même adresse que VPS_HOST"
+            exit 1
+          }
+          echo "TARGET=$user@$host" >> "$GITHUB_ENV"
 
       - name: Pull de l'image et redémarrage du conteneur
         env:
-          TARGET: ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}
           TAG: ${{ env.IMAGE }}:sha-${{ github.sha }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
