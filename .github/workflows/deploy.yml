@@ -97,6 +97,13 @@ jobs:
           install -d -m 700 ~/.ssh
           printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -P '' -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub 2>/dev/null; then
+            case "$SSH_KEY" in ssh-*|ecdsa-*) hint="c'est une clé publique (.pub)" ;; *) hint="clé tronquée, mal collée ou protégée par une phrase de passe" ;; esac
+            echo "::error::VPS_SSH_KEY n'est pas une clé privée utilisable ($hint) : coller tout le fichier de clé privée, de -----BEGIN OPENSSH PRIVATE KEY----- à -----END OPENSSH PRIVATE KEY-----"
+            exit 1
+          fi
+          # empreinte publique : doit correspondre à une ligne de ~/.ssh/authorized_keys sur le VPS
+          echo "Clé de déploiement : $(ssh-keygen -lf ~/.ssh/deploy_key.pub)"
           printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
           ssh-keygen -F "$host" -f ~/.ssh/known_hosts > /dev/null || {
             echo "::error::VPS_KNOWN_HOSTS ne contient aucune empreinte pour VPS_HOST : y coller la sortie complète de « ssh-keyscan <adresse du VPS> », avec la même adresse que VPS_HOST"
@@ -111,7 +118,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # le jeton du workflow ne sert qu'au pull et expire à la fin du job
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$TARGET" bash -s <<EOF
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes "$TARGET" bash -s <<EOF
           set -euo pipefail
           echo '$GHCR_TOKEN' | docker login ghcr.io -u '$GHCR_USER' --password-stdin
           docker pull '$TAG'
