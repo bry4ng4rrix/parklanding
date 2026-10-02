@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Fragment,
   useEffect,
   useRef,
   useState,
@@ -13,81 +12,8 @@ import { ArrowDownRight, ArrowRight, Check, Menu, X } from "lucide-react";
 import { LiveMap } from "@/components/live-map";
 import { MissionDemo } from "@/components/mission-demo";
 
-const heroImage = "/images/park-hero-tractor.webp";
-// Tracteur à lame détouré (avec son ombre au sol), posé sur le fond de la vue éclatée ; son moyeu avant, remis à plat, tourne à part
-const heroScene = {
-  machine: heroImage,
-  hub: "/images/park-hero-tractor-hub.png",
-};
-const heroHeadline = [
-  { text: "Votre flotte.", em: false },
-  { text: "en mouvement.", em: true },
-];
-// Avant du tracteur, mesuré sur son calque (fractions de sa largeur/hauteur) : pour 40 tranches horizontales, abscisse du premier pixel de l'engin (null : rien à cette hauteur)
-const machineFront = [
-  null,
-  0.536,
-  0.435,
-  0.325,
-  0.312,
-  0.309,
-  0.304,
-  0.273,
-  0.273,
-  0.273,
-  0.274,
-  0.278,
-  0.256,
-  0.19,
-  0.179,
-  0.182,
-  0.186,
-  0.191,
-  0.197,
-  0.155,
-  0.116,
-  0.09,
-  0.04,
-  0.033,
-  0.036,
-  0.043,
-  0.047,
-  0.047,
-  0.043,
-  0.04,
-  0.029,
-  0.016,
-  0.016,
-  0.088,
-  0.114,
-  0.171,
-  0.422,
-  0.528,
-  null,
-  null,
-];
-const machineArm = 0.4; // arrière de la lame : les mots déjà derrière ne sont pas poussés
-const bladeHeap = {
-  x: 0.2,
-  floor: 0.8,
-  gap: [0.05, 0.06],
-  rows: [8, 7, 5, 3, 1],
-  scale: 0.28,
-}; // tas de lettres poussées contre la lame : centre, sol, écarts, lettres par rangée (de bas en haut) et taille finale
-const heapSlot = (rank: number) => {
-  let row = 0,
-    first = 0;
-  while (rank >= first + (bladeHeap.rows[row] ?? 1)) {
-    first += bladeHeap.rows[row] ?? 1;
-    row++;
-  }
-  const count = bladeHeap.rows[row] ?? 1;
-  return {
-    x: bladeHeap.x + (rank - first - (count - 1) / 2) * bladeHeap.gap[0],
-    y: bladeHeap.floor - row * bladeHeap.gap[1],
-  };
-};
-const machineTravel = 1.15 + 0.04; // recul du bord gauche de .hero-machine à --drive = 1 (translation de 115% + agrandissement de 8% autour de son centre)
+const heroImage = "/images/park-hero-excavator.webp";
+// Pelleteuse sur chenilles détourée (avec son ombre au sol), posée sur le fond de la vue éclatée
 
 // Contenu tiré de PRESENTATION.md
 const pilotage = [
@@ -448,135 +374,14 @@ export default function Page() {
     return () => observer.disconnect();
   }, []);
 
-  // Le tracteur avance vers la gauche à mesure que le hero défile : --drive (0 → 1) pilote sa position et la rotation du moyeu, --dust la poussière.
-  // Il pousse au passage les lettres du titre qu'il rencontre : chaque lettre part quand l'avant de l'engin l'atteint, s'entasse contre la lame et avance avec lui.
+  // La pelleteuse avance vers la gauche à mesure que le hero défile : --drive (0 → 1) pilote sa position, --dust la poussière selon la vitesse
   useEffect(() => {
     const hero = heroRef.current;
-    const machine = hero?.querySelector<HTMLElement>(".hero-machine");
-    if (
-      !hero ||
-      !machine ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
+    if (!hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       return;
-    const words = [...hero.querySelectorAll<HTMLElement>(".hero-word")];
-    type Letter = {
-      el: HTMLElement;
-      x: number;
-      y: number;
-      contact: number;
-      slotX: number;
-      slotY: number;
-      spin: number;
-      lift: number;
-    };
-    let letters: Letter[] = [],
-      rest = { left: 0, top: 0, width: 0, height: 0 };
     let frame = 0,
       current = 0,
-      target = 0,
-      visible = true,
-      disposed = false;
-    const random = (seed: number) => {
-      const s = Math.sin(seed * 12.9898) * 43758.5453;
-      return s - Math.floor(s);
-    };
-    const inHero = (el: HTMLElement) => {
-      let x = 0,
-        y = 0,
-        node: HTMLElement | null = el;
-      while (node && node !== hero) {
-        x += node.offsetLeft;
-        y += node.offsetTop;
-        node = node.offsetParent as HTMLElement | null;
-      }
-      return { x, y };
-    };
-    const machineBox = () => {
-      const m = machine.getBoundingClientRect(),
-        h = hero.getBoundingClientRect();
-      return {
-        left: m.left - h.left,
-        top: m.top - h.top,
-        width: m.width,
-        height: m.height,
-      };
-    };
-
-    const measure = () => {
-      machine.style.transform = "none";
-      rest = machineBox();
-      machine.style.transform = "";
-      const arm = rest.left + machineArm * rest.width;
-      letters.forEach(({ el }) => {
-        el.style.transform = "";
-        el.style.opacity = "";
-        el.style.pointerEvents = "";
-      });
-      letters = words.flatMap((word) => {
-        const origin = inHero(word);
-        const front =
-          machineFront[
-            Math.floor(
-              ((origin.y + word.offsetHeight / 2 - rest.top) / rest.height) *
-                machineFront.length,
-            )
-          ];
-        if (front == null || origin.x + word.offsetWidth / 2 > arm) return []; // hors du chemin de l'engin ou déjà derrière la lame : le mot reste en place
-        const edge = rest.left + front * rest.width;
-        return [...word.children].map((child, i) => {
-          const el = child as HTMLElement,
-            { x, y } = inHero(el),
-            right = x + el.offsetWidth,
-            seed = origin.x + origin.y + i;
-          // distance que l'engin doit parcourir avant de toucher la lettre : par son avant si elle est devant lui, sinon par l'arrière de la lame
-          const contact =
-            right <= edge ? edge - right : Math.max(0, arm - right);
-          return {
-            el,
-            x: x + el.offsetWidth / 2,
-            y: y + el.offsetHeight / 2,
-            contact,
-            slotX: (random(seed) - 0.5) * 0.008,
-            slotY: (random(seed + 7) - 0.5) * 0.008,
-            spin: (random(seed + 3) - 0.5) * 60,
-            lift: 40 + random(seed + 5) * 60,
-          };
-        });
-      });
-      // les premières lettres poussées tombent au pied de la lame, les suivantes s'empilent par-dessus
-      const pickupOrder = [...letters].sort((a, b) => a.contact - b.contact);
-      pickupOrder.forEach((letter, rank) => {
-        const slot = heapSlot(rank);
-        letter.slotX += slot.x;
-        letter.slotY += slot.y;
-      });
-    };
-
-    // Place les lettres poussées ; renvoie true tant que la lame en pousse (elles doivent suivre la dérive lente de l'image)
-    const place = () => {
-      const live = machineBox(),
-        moved = current * machineTravel * rest.width;
-      let carrying = false;
-      letters.forEach((letter) => {
-        const p = Math.min(1, Math.max(0, (moved - letter.contact) / 140));
-        if (p === 0) {
-          letter.el.style.transform = "";
-          letter.el.style.opacity = "";
-          letter.el.style.pointerEvents = "";
-          return;
-        }
-        carrying = true;
-        const e = p < 0.5 ? 4 * p ** 3 : 1 - (2 - 2 * p) ** 3 / 2;
-        const dx = live.left + letter.slotX * live.width - letter.x,
-          dy = live.top + letter.slotY * live.height - letter.y;
-        letter.el.style.transform = `translate3d(${dx * e}px, ${dy * e - letter.lift * Math.sin(Math.PI * e)}px, 0) rotate(${letter.spin * e}deg) scale(${1 - (1 - bladeHeap.scale) * e})`;
-        letter.el.style.opacity = String(1 - 0.15 * e);
-        letter.el.style.pointerEvents = "none"; // une lettre qui passe au-dessus des boutons ne doit pas bloquer le clic
-      });
-      return carrying;
-    };
-
+      target = 0;
     const tick = () => {
       const delta = target - current;
       current = Math.abs(delta) < 0.0005 ? target : current + delta * 0.12;
@@ -585,43 +390,22 @@ export default function Page() {
         "--dust",
         current === target ? "0" : Math.min(1, Math.abs(delta) * 12).toFixed(3),
       );
-      const carrying = place();
-      frame =
-        current !== target || (carrying && visible)
-          ? window.requestAnimationFrame(tick)
-          : 0;
-    };
-    const wake = () => {
-      if (!frame) frame = window.requestAnimationFrame(tick);
+      frame = current === target ? 0 : window.requestAnimationFrame(tick);
     };
     const handleScroll = () => {
       target = Math.min(
         1,
         Math.max(0, window.scrollY / (hero.offsetHeight * 0.8)),
       );
-      wake();
+      if (!frame) frame = window.requestAnimationFrame(tick);
     };
-    const handleResize = () => {
-      measure();
-      handleScroll();
-    };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      if (visible) wake();
-    });
-    handleResize();
-    document.fonts.ready.then(() => {
-      if (!disposed) handleResize();
-    });
-    observer.observe(hero);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleScroll);
     return () => {
-      disposed = true;
       window.cancelAnimationFrame(frame);
-      observer.disconnect();
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", handleScroll);
     };
   }, []);
 
@@ -729,13 +513,9 @@ export default function Page() {
           <div className="hero-scene">
             <div
               className="hero-machine"
-              style={{ backgroundImage: `url(${heroScene.machine})` }}
+              style={{ backgroundImage: `url(${heroImage})` }}
             >
               <span className="hero-dust" />
-              <span
-                className="hero-wheel hero-wheel-hub"
-                style={{ backgroundImage: `url(${heroScene.hub})` }}
-              />
             </div>
           </div>
         </div>
@@ -839,28 +619,9 @@ export default function Page() {
             <span className="eyebrow-label">Gestion de parc roulant</span>
           </p>
           <h1>
-            <span className="sr-only">
-              {heroHeadline.map((line) => line.text).join(" ")}
-            </span>
-            {heroHeadline.map(({ text, em }) => {
-              const Line = em ? "em" : "span";
-              return (
-                <Line className="hero-line" aria-hidden="true" key={text}>
-                  {text.split(" ").map((word, w) => (
-                    <Fragment key={word}>
-                      {w > 0 && " "}
-                      <span className="hero-word">
-                        {[...word].map((letter, l) => (
-                          <span className="hero-letter" key={l}>
-                            {letter}
-                          </span>
-                        ))}
-                      </span>
-                    </Fragment>
-                  ))}
-                </Line>
-              );
-            })}
+            Votre flotte.
+            <br />
+            <em>en mouvement.</em>
           </h1>
           <p className="hero-copy">
             Véhicules routiers et engins de chantier, leurs conducteurs, leurs
