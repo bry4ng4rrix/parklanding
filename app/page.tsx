@@ -755,7 +755,7 @@ export default function Page() {
         </div>
         <div className="intro-grid">
           <h2>
-            « La route vous appelle.
+            « Le service vous appelle.
             <br />
             <em>Votre horizon s'ouvre.</em>
           </h2>
