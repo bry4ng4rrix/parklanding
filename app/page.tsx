@@ -4,6 +4,9 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type Pointer
 import { ArrowDownRight, ArrowRight, Check, Menu, X } from 'lucide-react'
 import { LiveMap } from '@/components/live-map'
 import { MissionDemo } from '@/components/mission-demo'
+import { FLEET_GROUPE_LABEL, appModuleUrl, fleetModules } from '@/lib/fleet-modules'
+
+const MODULE_COUNT = fleetModules.length
 
 const heroImage = '/images/park-hero-tractor.webp'
 // Tracteur à lame détouré (avec son ombre au sol), posé sur le fond de la vue éclatée ; son moyeu avant, remis à plat, tourne à part
@@ -31,15 +34,6 @@ const pilotage = [
   { number: '06', title: 'Renouvellement', text: 'Fin de vie, cessions, plan de remplacement chiffré.', icon: '↻' },
   { number: '07', title: 'Prévisions', text: 'Les dépenses projetées sur douze mois.', icon: '⟶' },
   { number: '08', title: 'Sinistres', text: 'Dossier assureur, responsabilité, reste à charge.', icon: '△' },
-]
-
-const fleetCards = [
-  { type: 'Engins de chantier', title: 'Mesurés en heures moteur', meta: 'Consommation et coût d’usage à l’heure', position: 'fleet-card-one', image: '/images/park-card-compacteur.webp' },
-  { type: 'Véhicules routiers', title: 'Suivis au kilomètre', meta: 'Fiche technique, compteurs, documents, photos', position: 'fleet-card-two', image: '/images/park-hero-4x4.png' },
-  { type: 'Missions', title: 'Un départ sous contrôle', meta: 'Affectations, pleins, incidents', position: 'fleet-card-three', image: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=900&q=70' },
-  { type: 'Carburant', title: 'Réel contre prévisionnel', meta: 'La cause probable de chaque écart', position: 'fleet-card-four', image: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=900&q=70' },
-  { type: 'Maintenance', title: 'Un échéancier tenu', meta: 'Contrôle qualité à la clôture', position: 'fleet-card-five', image: 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=70' },
-  { type: 'GPS', title: 'La conduite notée', meta: 'Score mensuel par conducteur', position: 'fleet-card-six', image: '/images/park-hero-cinematic.png' },
 ]
 
 const dashboardImage = 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=85'
@@ -110,7 +104,7 @@ const trackingFeatures = [
 
 export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [activeCard, setActiveCard] = useState(6)
+  const [activeCard, setActiveCard] = useState(MODULE_COUNT)
   const [isWrapping, setIsWrapping] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState(0)
@@ -119,15 +113,26 @@ export default function Page() {
   const heroRef = useRef<HTMLElement>(null)
   const chantiersRef = useRef<HTMLElement>(null)
 
-  const goToCard = (direction: 1 | -1) => setActiveCard((current) => Math.min(12, Math.max(6, current + direction)))
+  const goToCard = (direction: 1 | -1) =>
+    setActiveCard((current) => Math.min(MODULE_COUNT * 2, Math.max(MODULE_COUNT, current + direction)))
+  const normalizeCarouselOffset = (offset: number) => {
+    const half = Math.floor(MODULE_COUNT / 2)
+    if (offset > half) return offset - MODULE_COUNT
+    if (offset < -half) return offset + MODULE_COUNT
+    return offset
+  }
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => { dragStart.current = event.clientX; dragMoved.current = false; setIsDragging(true); event.currentTarget.setPointerCapture(event.pointerId) }
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => { if (!isDragging) return; const offset = event.clientX - dragStart.current; if (Math.abs(offset) > 5) dragMoved.current = true; setDragOffset(offset) }
   const handlePointerUp = () => { if (!isDragging) return; if (Math.abs(dragOffset) > 70) goToCard(dragOffset < 0 ? 1 : -1); setIsDragging(false); setDragOffset(0); window.setTimeout(() => { dragMoved.current = false }, 0) }
   const handleCarouselKeyDown = (event: KeyboardEvent<HTMLDivElement>) => { if (event.key === 'ArrowRight') { event.preventDefault(); goToCard(1) }; if (event.key === 'ArrowLeft') { event.preventDefault(); goToCard(-1) } }
 
   useEffect(() => {
-    if (activeCard === 12) {
-      const wrap = window.setTimeout(() => { setIsWrapping(true); setActiveCard(6); window.requestAnimationFrame(() => setIsWrapping(false)) }, 850)
+    if (activeCard === MODULE_COUNT * 2) {
+      const wrap = window.setTimeout(() => {
+        setIsWrapping(true)
+        setActiveCard(MODULE_COUNT)
+        window.requestAnimationFrame(() => setIsWrapping(false))
+      }, 850)
       return () => window.clearTimeout(wrap)
     }
   }, [activeCard])
@@ -355,19 +360,91 @@ export default function Page() {
       <section className="fleet-section reveal-on-scroll" id="parc" aria-labelledby="fleet-title">
         <div className="fleet-section-heading">
           <div><p className="section-kicker"><span>02 / 10</span><span className="kicker-line" /><span>Le parc et son exploitation</span></p><h2 id="fleet-title">Une vision<br /><em>en profondeur.</em></h2></div>
-          <p>Chaque véhicule porte sa fiche technique, ses compteurs, ses documents et ses photos. Autour de lui : missions, affectations, pleins, maintenances, incidents, documents à échéance et équipements de bord.</p>
+          <p>
+            {MODULE_COUNT} écrans avec une courte description chacun. Faites défiler le carrousel, lisez la carte au centre, puis ouvrez l’écran dans l’application.
+          </p>
         </div>
+
         <div className="fleet-stage">
-          <div className={`fleet-track ${isDragging ? 'is-dragging' : ''} ${isWrapping ? 'is-wrapping' : ''}`} role="region" aria-label="Carousel des modules de flotte" tabIndex={0} onKeyDown={handleCarouselKeyDown} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ '--active-card': activeCard, '--drag-offset': `${dragOffset}px` } as CSSProperties}>
-            {[...fleetCards, ...fleetCards, ...fleetCards].map((card, index) => {
-              const offset = index - activeCard
-              const normalizedOffset = offset > 3 ? offset - 6 : offset < -3 ? offset + 6 : offset
-              return <button key={`${card.type}-${index}`} className={`fleet-card ${card.position} ${normalizedOffset === 0 ? 'is-active' : ''} ${normalizedOffset === -1 ? 'is-prev' : ''} ${normalizedOffset === 1 ? 'is-next' : ''} ${normalizedOffset === -2 ? 'is-far-prev' : ''} ${normalizedOffset === 2 ? 'is-far-next' : ''} ${Math.abs(normalizedOffset) > 2 ? 'is-hidden' : ''}`} style={{ '--card-image': `url(${card.image})`, '--drag-x': normalizedOffset === 0 ? `${dragOffset}px` : '0px' } as CSSProperties} onClick={() => { if (!dragMoved.current) setActiveCard(index) }} aria-label={`Voir ${card.title}`}>
-                <span className="fleet-card-index">{String((index % fleetCards.length) + 1).padStart(2, '0')}</span><span className="fleet-card-type">{card.type}</span><strong>{card.title}</strong><small>{card.meta}</small><span className="fleet-card-arrow">↗</span>
-              </button>
+          <div className={`fleet-track ${isDragging ? 'is-dragging' : ''} ${isWrapping ? 'is-wrapping' : ''}`} role="region" aria-label="Carousel des modules de l’application web" tabIndex={0} onKeyDown={handleCarouselKeyDown} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ '--active-card': activeCard, '--drag-offset': `${dragOffset}px` } as CSSProperties}>
+            {[...fleetModules, ...fleetModules, ...fleetModules].map((module, index) => {
+              const normalizedOffset = normalizeCarouselOffset(index - activeCard)
+              const moduleIndex = index % MODULE_COUNT
+              const isActive = normalizedOffset === 0
+              return (
+                <a
+                  key={`${module.path}-${index}`}
+                  className={`fleet-card ${isActive ? 'is-active' : ''} ${normalizedOffset === -1 ? 'is-prev' : ''} ${normalizedOffset === 1 ? 'is-next' : ''} ${normalizedOffset === -2 ? 'is-far-prev' : ''} ${normalizedOffset === 2 ? 'is-far-next' : ''} ${Math.abs(normalizedOffset) > 2 ? 'is-hidden' : ''}`}
+                  style={{ '--card-image': `url(${module.image})`, '--drag-x': isActive ? `${dragOffset}px` : '0px' } as CSSProperties}
+                  href={appModuleUrl(module.path)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={module.detail ? `${module.resume} ${module.detail}` : module.resume}
+                  onClick={(event) => {
+                    if (dragMoved.current) {
+                      event.preventDefault()
+                      return
+                    }
+                    if (!isActive) {
+                      event.preventDefault()
+                      setActiveCard(index)
+                    }
+                  }}
+                  aria-label={isActive ? `Ouvrir ${module.label} (${module.path})` : `Afficher ${module.label}`}
+                >
+                  <span className="fleet-card-index">{String(moduleIndex + 1).padStart(2, '0')}</span>
+                  <span className="fleet-card-type">
+                    {FLEET_GROUPE_LABEL[module.groupe]}
+                    {module.kind === 'detail' ? ' · détail' : ''}
+                  </span>
+                  <strong>{module.label}</strong>
+                  <p className="fleet-card-resume">{module.resume}</p>
+                  {isActive && module.detail ? <p className="fleet-card-detail">{module.detail}</p> : null}
+                  <span className="fleet-card-route">{module.path}</span>
+                  {isActive ? (
+                    <span className="fleet-card-open">
+                      Ouvrir l’écran ↗
+                      <button
+                        type="button"
+                        className="fleet-card-asset"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          window.open(module.image, '_blank', 'noopener,noreferrer')
+                        }}
+                      >
+                        Télécharger l’illustration
+                      </button>
+                    </span>
+                  ) : null}
+                  <span className="fleet-card-arrow" aria-hidden="true">↗</span>
+                </a>
+              )
             })}
           </div>
-          <div className="fleet-controls"><span className="carousel-loop-status" aria-live="polite"><i /> Défilement automatique</span><button onClick={() => goToCard(-1)} aria-label="Module précédent">←</button><span>Faire défiler pour explorer <b>{String((activeCard % fleetCards.length) + 1).padStart(2, '0')} / 06</b></span><button onClick={() => goToCard(1)} aria-label="Module suivant">→</button></div>
+          <div className="fleet-controls">
+            <span className="carousel-loop-status" aria-live="polite"><i /> Défilement automatique</span>
+            <button type="button" onClick={() => goToCard(-1)} aria-label="Module précédent">←</button>
+            <span>
+              Faire défiler pour explorer{' '}
+              <b>
+                {String((activeCard % MODULE_COUNT) + 1).padStart(2, '0')} / {String(MODULE_COUNT).padStart(2, '0')}
+              </b>
+            </span>
+            <button type="button" onClick={() => goToCard(1)} aria-label="Module suivant">→</button>
+          </div>
+          <ul className="fleet-module-directory" aria-label="Index des écrans et descriptions">
+            {fleetModules.map((module, i) => (
+              <li key={module.path}>
+                <span className="fleet-module-directory-index">{String(i + 1).padStart(2, '0')}</span>
+                <div>
+                  <strong>{module.label}</strong>
+                  <span className="fleet-module-directory-path">{module.path}</span>
+                  <p>{module.resume}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
