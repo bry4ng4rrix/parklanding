@@ -69,49 +69,263 @@ const pilotage = [
 
 const fleetCards = [
   {
-    type: "Engins de chantier",
-    title: "Mesurés en heures moteur",
-    meta: "Consommation et coût d’usage à l’heure",
-    position: "fleet-card-one",
-    image: "/images/park-card-compacteur.webp",
+    type: "Pilotage",
+    title: "Tableau de bord",
+    meta: "Les indicateurs clés du parc en un regard.",
+    route: "/",
+    image: "/images/route-office.jpg",
   },
   {
-    type: "Véhicules routiers",
-    title: "Suivis au kilomètre",
-    meta: "Fiche technique, compteurs, documents, photos",
-    position: "fleet-card-two",
+    type: "Pilotage",
+    title: "Analytique",
+    meta: "Explorez les tendances et les données d’activité.",
+    route: "/analytique",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Performance",
+    meta: "Suivez l’utilisation et le rendement de la flotte.",
+    route: "/performance",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Coûts",
+    meta: "Comprenez le coût complet de chaque véhicule.",
+    route: "/couts",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Fiabilité et conformité",
+    meta: "Anticipez les pannes et les échéances réglementaires.",
+    route: "/fiabilite",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Renouvellement",
+    meta: "Préparez les remplacements et les fins de vie.",
+    route: "/renouvellement",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Recommandations",
+    meta: "Repérez les prochaines actions à fort impact.",
+    route: "/recommandations",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Rapports",
+    meta: "Consultez et partagez les rapports de la flotte.",
+    route: "/rapports",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Pilotage",
+    title: "Messagerie",
+    meta: "Échangez avec les équipes autour des opérations.",
+    route: "/messagerie",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Parc",
+    title: "Véhicules",
+    meta: "Retrouvez fiches, compteurs, documents et photos.",
+    route: "/engins",
     image: "/images/park-hero-4x4.png",
   },
   {
-    type: "Missions",
-    title: "Un départ sous contrôle",
-    meta: "Affectations, pleins, incidents",
-    position: "fleet-card-three",
-    image:
-      "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=900&q=70",
+    type: "Parc",
+    title: "Types de véhicule",
+    meta: "Structurez le parc par catégories d’engins.",
+    route: "/types-engin",
+    image: "/images/park-card-compacteur.webp",
   },
   {
-    type: "Carburant",
-    title: "Réel contre prévisionnel",
-    meta: "La cause probable de chaque écart",
-    position: "fleet-card-four",
-    image:
-      "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=900&q=70",
+    type: "Parc",
+    title: "Listes de la fiche",
+    meta: "Adaptez les listes et caractéristiques des fiches.",
+    route: "/listes-fiche",
+    image: "/images/park-hero-loader.png",
   },
   {
-    type: "Maintenance",
-    title: "Un échéancier tenu",
-    meta: "Contrôle qualité à la clôture",
-    position: "fleet-card-five",
-    image:
-      "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=70",
+    type: "Parc",
+    title: "Documents",
+    meta: "Gardez les pièces du parc accessibles et à jour.",
+    route: "/documents",
+    image: "/images/route-workshop.jpg",
   },
   {
-    type: "GPS",
-    title: "La conduite notée",
-    meta: "Score mensuel par conducteur",
-    position: "fleet-card-six",
-    image: "/images/park-hero-cinematic.png",
+    type: "Parc",
+    title: "Conducteurs",
+    meta: "Consultez les profils et qualifications des équipes.",
+    route: "/conducteurs",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Parc",
+    title: "Zones géographiques",
+    meta: "Définissez les lieux de référence de la flotte.",
+    route: "/zones",
+    image: "/images/route-truck.jpg",
+  },
+  {
+    type: "Exploitation",
+    title: "Missions",
+    meta: "Planifiez les déplacements et contrôlez les départs.",
+    route: "/missions",
+    image: "/images/park-hero-4x4.png",
+  },
+  {
+    type: "Exploitation",
+    title: "Affectations",
+    meta: "Associez les bons conducteurs aux véhicules.",
+    route: "/affectations",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Exploitation",
+    title: "Chantiers",
+    meta: "Suivez les engins, équipes et périodes sur site.",
+    route: "/chantiers",
+    image: "/images/park-card-compacteur.webp",
+  },
+  {
+    type: "Exploitation",
+    title: "GPS et trajets",
+    meta: "Visualisez les positions et déplacements récents.",
+    route: "/gps",
+    image: "/images/route-truck.jpg",
+  },
+  {
+    type: "Exploitation",
+    title: "Carburant",
+    meta: "Comparez les pleins réels au budget prévu.",
+    route: "/carburant",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Exploitation",
+    title: "Incidents",
+    meta: "Centralisez les événements et leur traitement.",
+    route: "/incidents",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Exploitation",
+    title: "Alertes",
+    meta: "Repérez rapidement les points qui demandent une action.",
+    route: "/alertes",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Atelier",
+    title: "Maintenance",
+    meta: "Organisez les interventions et échéanciers atelier.",
+    route: "/maintenance",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Atelier",
+    title: "Garages externes",
+    meta: "Retrouvez les partenaires de réparation du parc.",
+    route: "/garages-externes",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Atelier",
+    title: "Fournisseurs",
+    meta: "Suivez les fournisseurs et leurs coordonnées.",
+    route: "/fournisseurs",
+    image: "/images/route-workshop.jpg",
+  },
+  {
+    type: "Finances",
+    title: "Locations externes",
+    meta: "Suivez les véhicules loués auprès de tiers.",
+    route: "/locations-externes",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Finances",
+    title: "Locations entrantes",
+    meta: "Gérez le matériel reçu en location.",
+    route: "/locations-entrantes",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Finances",
+    title: "Prestataires de location",
+    meta: "Retrouvez les contacts et offres de location.",
+    route: "/prestataires-location",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Finances",
+    title: "Factures pro forma",
+    meta: "Préparez les éléments de facturation prévisionnelle.",
+    route: "/factures-proforma",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Finances",
+    title: "Export comptable",
+    meta: "Transmettez les écritures du parc à la comptabilité.",
+    route: "/export-comptable",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Mise en service",
+    meta: "Configurez progressivement votre environnement.",
+    route: "/mise-en-service",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Utilisateurs",
+    meta: "Gérez les comptes et accès de votre organisation.",
+    route: "/utilisateurs",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Journal d’audit",
+    meta: "Consultez l’historique des actions réalisées.",
+    route: "/journal-audit",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Suivi du logiciel",
+    meta: "Suivez l’adoption et la qualité des données.",
+    route: "/suivi-logiciel",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Import Excel ou CSV",
+    meta: "Intégrez les données existantes de votre flotte.",
+    route: "/imports",
+    image: "/images/route-analytics.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Aide",
+    meta: "Trouvez des réponses et des guides pratiques.",
+    route: "/aide",
+    image: "/images/route-team.jpg",
+  },
+  {
+    type: "Administration",
+    title: "Paramètres",
+    meta: "Réglez les préférences de la plateforme.",
+    route: "/parametres",
+    image: "/images/route-analytics.jpg",
   },
 ];
 
@@ -297,7 +511,7 @@ const trackingFeatures = [
 
 export default function Page() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeCard, setActiveCard] = useState(6);
+  const [activeCard, setActiveCard] = useState(fleetCards.length);
   const [isWrapping, setIsWrapping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -307,7 +521,7 @@ export default function Page() {
   const chantiersRef = useRef<HTMLElement>(null);
 
   const goToCard = (direction: 1 | -1) =>
-    setActiveCard((current) => Math.min(12, Math.max(6, current + direction)));
+    setActiveCard((current) => current + direction);
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     dragStart.current = event.clientX;
     dragMoved.current = false;
@@ -341,10 +555,17 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (activeCard === 12) {
+    if (
+      activeCard === fleetCards.length * 2 ||
+      activeCard === fleetCards.length - 1
+    ) {
       const wrap = window.setTimeout(() => {
         setIsWrapping(true);
-        setActiveCard(6);
+        setActiveCard((current) =>
+          current === fleetCards.length * 2
+            ? fleetCards.length
+            : fleetCards.length * 2 - 1,
+        );
         window.requestAnimationFrame(() => setIsWrapping(false));
       }, 850);
       return () => window.clearTimeout(wrap);
@@ -696,12 +917,18 @@ export default function Page() {
             {[...fleetCards, ...fleetCards, ...fleetCards].map(
               (card, index) => {
                 const offset = index - activeCard;
+                const cardCount = fleetCards.length;
+                const wrappedOffset = offset % cardCount;
                 const normalizedOffset =
-                  offset > 3 ? offset - 6 : offset < -3 ? offset + 6 : offset;
+                  wrappedOffset > cardCount / 2
+                    ? wrappedOffset - cardCount
+                    : wrappedOffset < -cardCount / 2
+                      ? wrappedOffset + cardCount
+                      : wrappedOffset;
                 return (
                   <button
-                    key={`${card.type}-${index}`}
-                    className={`fleet-card ${card.position} ${normalizedOffset === 0 ? "is-active" : ""} ${normalizedOffset === -1 ? "is-prev" : ""} ${normalizedOffset === 1 ? "is-next" : ""} ${normalizedOffset === -2 ? "is-far-prev" : ""} ${normalizedOffset === 2 ? "is-far-next" : ""} ${Math.abs(normalizedOffset) > 2 ? "is-hidden" : ""}`}
+                    key={`${card.route}-${index}`}
+                    className={`fleet-card ${offset === 0 ? "is-active" : ""} ${normalizedOffset === -1 ? "is-prev" : ""} ${normalizedOffset === 1 ? "is-next" : ""} ${normalizedOffset === -2 ? "is-far-prev" : ""} ${normalizedOffset === 2 ? "is-far-next" : ""} ${Math.abs(normalizedOffset) > 2 ? "is-hidden" : ""}`}
                     style={
                       {
                         "--card-image": `url(${card.image})`,
@@ -712,7 +939,7 @@ export default function Page() {
                     onClick={() => {
                       if (!dragMoved.current) setActiveCard(index);
                     }}
-                    aria-label={`Voir ${card.title}`}
+                    aria-label={`Voir ${card.title}, route ${card.route}`}
                   >
                     <span className="fleet-card-index">
                       {String((index % fleetCards.length) + 1).padStart(2, "0")}
@@ -720,6 +947,7 @@ export default function Page() {
                     <span className="fleet-card-type">{card.type}</span>
                     <strong>{card.title}</strong>
                     <small>{card.meta}</small>
+                    <small className="fleet-card-route">{card.route}</small>
                     <span className="fleet-card-arrow">↗</span>
                   </button>
                 );
@@ -737,7 +965,7 @@ export default function Page() {
               Faire défiler pour explorer{" "}
               <b>
                 {String((activeCard % fleetCards.length) + 1).padStart(2, "0")}{" "}
-                / 06
+                / {String(fleetCards.length).padStart(2, "0")}
               </b>
             </span>
             <button onClick={() => goToCard(1)} aria-label="Module suivant">
