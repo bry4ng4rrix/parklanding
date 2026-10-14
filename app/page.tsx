@@ -1,46 +1,119 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type PointerEvent, type KeyboardEvent } from 'react'
-import { ArrowDownRight, ArrowRight, Check, Menu, X } from 'lucide-react'
-import { LiveMap } from '@/components/live-map'
-import { MissionDemo } from '@/components/mission-demo'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+  type KeyboardEvent,
+} from "react";
+import { ArrowDownRight, ArrowRight, Check, Menu, X } from "lucide-react";
+import { LiveMap } from "@/components/live-map";
+import { MissionDemo } from "@/components/mission-demo";
 
-const heroImage = '/images/park-hero-tractor.webp'
-// Tracteur à lame détouré (avec son ombre au sol), posé sur le fond de la vue éclatée ; son moyeu avant, remis à plat, tourne à part
-const heroScene = { machine: heroImage, hub: '/images/park-hero-tractor-hub.png' }
-const heroHeadline = [{ text: 'Votre flotte.', em: false }, { text: 'en mouvement.', em: true }]
-// Avant du tracteur, mesuré sur son calque (fractions de sa largeur/hauteur) : pour 40 tranches horizontales, abscisse du premier pixel de l'engin (null : rien à cette hauteur)
-const machineFront = [null, .536, .435, .325, .312, .309, .304, .273, .273, .273, .274, .278, .256, .19, .179, .182, .186, .191, .197, .155, .116, .09, .04, .033, .036, .043, .047, .047, .043, .04, .029, .016, .016, .088, .114, .171, .422, .528, null, null]
-const machineArm = .4 // arrière de la lame : les mots déjà derrière ne sont pas poussés
-const bladeHeap = { x: .2, floor: .8, gap: [.05, .06], rows: [8, 7, 5, 3, 1], scale: .28 } // tas de lettres poussées contre la lame : centre, sol, écarts, lettres par rangée (de bas en haut) et taille finale
-const heapSlot = (rank: number) => {
-  let row = 0, first = 0
-  while (rank >= first + (bladeHeap.rows[row] ?? 1)) { first += bladeHeap.rows[row] ?? 1; row++ }
-  const count = bladeHeap.rows[row] ?? 1
-  return { x: bladeHeap.x + (rank - first - (count - 1) / 2) * bladeHeap.gap[0], y: bladeHeap.floor - row * bladeHeap.gap[1] }
-}
-const machineTravel = 1.15 + .04 // recul du bord gauche de .hero-machine à --drive = 1 (translation de 115% + agrandissement de 8% autour de son centre)
+const heroImage = "/images/park-hero-excavator.webp";
+// Pelleteuse sur chenilles détourée (avec son ombre au sol), posée sur le fond de la vue éclatée
 
 // Contenu tiré de PRESENTATION.md
 const pilotage = [
-  { number: '01', title: 'Coût complet (TCO)', text: 'Par véhicule et par type : amortissement, loyer, charges annuelles au prorata, carburant, entretien.', icon: '◎' },
-  { number: '02', title: 'Taux d’utilisation', text: 'Les véhicules sous-utilisés ressortent, avec des seuils réglés par type : un camion-benne n’est pas une voiture de service.', icon: '↗' },
-  { number: '03', title: 'Fiabilité', text: 'Pannes, immobilisation, respect des échéances, contrôles qualité à la clôture des maintenances.', icon: '◌' },
-  { number: '04', title: 'Score de conduite', text: 'Mensuel, par conducteur, à partir des événements remontés par les boîtiers GPS.', icon: '◐' },
-  { number: '05', title: 'Budget carburant', text: 'Le réel comparé au prévisionnel, avec la cause probable de l’écart.', icon: '◧' },
-  { number: '06', title: 'Renouvellement', text: 'Fin de vie, cessions, plan de remplacement chiffré.', icon: '↻' },
-  { number: '07', title: 'Prévisions', text: 'Les dépenses projetées sur douze mois.', icon: '⟶' },
-  { number: '08', title: 'Sinistres', text: 'Dossier assureur, responsabilité, reste à charge.', icon: '△' },
-]
+  {
+    number: "01",
+    title: "Coût complet (TCO)",
+    text: "Par véhicule et par type : amortissement, loyer, charges annuelles au prorata, carburant, entretien.",
+    icon: "◎",
+  },
+  {
+    number: "02",
+    title: "Taux d’utilisation",
+    text: "Les véhicules sous-utilisés ressortent, avec des seuils réglés par type : un camion-benne n’est pas une voiture de service.",
+    icon: "↗",
+  },
+  {
+    number: "03",
+    title: "Fiabilité",
+    text: "Pannes, immobilisation, respect des échéances, contrôles qualité à la clôture des maintenances.",
+    icon: "◌",
+  },
+  {
+    number: "04",
+    title: "Score de conduite",
+    text: "Mensuel, par conducteur, à partir des événements remontés par les boîtiers GPS.",
+    icon: "◐",
+  },
+  {
+    number: "05",
+    title: "Budget carburant",
+    text: "Le réel comparé au prévisionnel, avec la cause probable de l’écart.",
+    icon: "◧",
+  },
+  {
+    number: "06",
+    title: "Renouvellement",
+    text: "Fin de vie, cessions, plan de remplacement chiffré.",
+    icon: "↻",
+  },
+  {
+    number: "07",
+    title: "Prévisions",
+    text: "Les dépenses projetées sur douze mois.",
+    icon: "⟶",
+  },
+  {
+    number: "08",
+    title: "Sinistres",
+    text: "Dossier assureur, responsabilité, reste à charge.",
+    icon: "△",
+  },
+];
 
 const fleetCards = [
-  { type: 'Engins de chantier', title: 'Mesurés en heures moteur', meta: 'Consommation et coût d’usage à l’heure', position: 'fleet-card-one', image: '/images/park-card-compacteur.webp' },
-  { type: 'Véhicules routiers', title: 'Suivis au kilomètre', meta: 'Fiche technique, compteurs, documents, photos', position: 'fleet-card-two', image: '/images/park-hero-4x4.png' },
-  { type: 'Missions', title: 'Un départ sous contrôle', meta: 'Affectations, pleins, incidents', position: 'fleet-card-three', image: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=900&q=70' },
-  { type: 'Carburant', title: 'Réel contre prévisionnel', meta: 'La cause probable de chaque écart', position: 'fleet-card-four', image: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=900&q=70' },
-  { type: 'Maintenance', title: 'Un échéancier tenu', meta: 'Contrôle qualité à la clôture', position: 'fleet-card-five', image: 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=70' },
-  { type: 'GPS', title: 'La conduite notée', meta: 'Score mensuel par conducteur', position: 'fleet-card-six', image: '/images/park-hero-cinematic.png' },
-]
+  {
+    type: "Engins de chantier",
+    title: "Mesurés en heures moteur",
+    meta: "Consommation et coût d’usage à l’heure",
+    position: "fleet-card-one",
+    image: "/images/park-card-compacteur.webp",
+  },
+  {
+    type: "Véhicules routiers",
+    title: "Suivis au kilomètre",
+    meta: "Fiche technique, compteurs, documents, photos",
+    position: "fleet-card-two",
+    image: "/images/park-hero-4x4.png",
+  },
+  {
+    type: "Missions",
+    title: "Un départ sous contrôle",
+    meta: "Affectations, pleins, incidents",
+    position: "fleet-card-three",
+    image:
+      "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=900&q=70",
+  },
+  {
+    type: "Carburant",
+    title: "Réel contre prévisionnel",
+    meta: "La cause probable de chaque écart",
+    position: "fleet-card-four",
+    image:
+      "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=900&q=70",
+  },
+  {
+    type: "Maintenance",
+    title: "Un échéancier tenu",
+    meta: "Contrôle qualité à la clôture",
+    position: "fleet-card-five",
+    image:
+      "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=900&q=70",
+  },
+  {
+    type: "GPS",
+    title: "La conduite notée",
+    meta: "Score mensuel par conducteur",
+    position: "fleet-card-six",
+    image: "/images/park-hero-cinematic.png",
+  },
+];
 
 const dashboardImage =
   "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=85";
@@ -223,26 +296,58 @@ const trackingFeatures = [
 ];
 
 export default function Page() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [activeCard, setActiveCard] = useState(6)
-  const [isWrapping, setIsWrapping] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState(0)
-  const dragStart = useRef(0)
-  const dragMoved = useRef(false)
-  const heroRef = useRef<HTMLElement>(null)
-  const chantiersRef = useRef<HTMLElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeCard, setActiveCard] = useState(6);
+  const [isWrapping, setIsWrapping] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const dragStart = useRef(0);
+  const dragMoved = useRef(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const chantiersRef = useRef<HTMLElement>(null);
 
-  const goToCard = (direction: 1 | -1) => setActiveCard((current) => Math.min(12, Math.max(6, current + direction)))
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => { dragStart.current = event.clientX; dragMoved.current = false; setIsDragging(true); event.currentTarget.setPointerCapture(event.pointerId) }
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => { if (!isDragging) return; const offset = event.clientX - dragStart.current; if (Math.abs(offset) > 5) dragMoved.current = true; setDragOffset(offset) }
-  const handlePointerUp = () => { if (!isDragging) return; if (Math.abs(dragOffset) > 70) goToCard(dragOffset < 0 ? 1 : -1); setIsDragging(false); setDragOffset(0); window.setTimeout(() => { dragMoved.current = false }, 0) }
-  const handleCarouselKeyDown = (event: KeyboardEvent<HTMLDivElement>) => { if (event.key === 'ArrowRight') { event.preventDefault(); goToCard(1) }; if (event.key === 'ArrowLeft') { event.preventDefault(); goToCard(-1) } }
+  const goToCard = (direction: 1 | -1) =>
+    setActiveCard((current) => Math.min(12, Math.max(6, current + direction)));
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    dragStart.current = event.clientX;
+    dragMoved.current = false;
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const offset = event.clientX - dragStart.current;
+    if (Math.abs(offset) > 5) dragMoved.current = true;
+    setDragOffset(offset);
+  };
+  const handlePointerUp = () => {
+    if (!isDragging) return;
+    if (Math.abs(dragOffset) > 70) goToCard(dragOffset < 0 ? 1 : -1);
+    setIsDragging(false);
+    setDragOffset(0);
+    window.setTimeout(() => {
+      dragMoved.current = false;
+    }, 0);
+  };
+  const handleCarouselKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      goToCard(1);
+    }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      goToCard(-1);
+    }
+  };
 
   useEffect(() => {
     if (activeCard === 12) {
-      const wrap = window.setTimeout(() => { setIsWrapping(true); setActiveCard(6); window.requestAnimationFrame(() => setIsWrapping(false)) }, 850)
-      return () => window.clearTimeout(wrap)
+      const wrap = window.setTimeout(() => {
+        setIsWrapping(true);
+        setActiveCard(6);
+        window.requestAnimationFrame(() => setIsWrapping(false));
+      }, 850);
+      return () => window.clearTimeout(wrap);
     }
   }, [activeCard]);
 
@@ -551,21 +656,94 @@ export default function Page() {
         aria-labelledby="fleet-title"
       >
         <div className="fleet-section-heading">
-          <div><p className="section-kicker"><span>02 / 10</span><span className="kicker-line" /><span>Le parc et son exploitation</span></p><h2 id="fleet-title">Une vision<br /><em>en profondeur.</em></h2></div>
-          <p>Chaque véhicule porte sa fiche technique, ses compteurs, ses documents et ses photos. Autour de lui : missions, affectations, pleins, maintenances, incidents, documents à échéance et équipements de bord.</p>
-        </div>
-
-        <div className="fleet-stage">
-          <div className={`fleet-track ${isDragging ? 'is-dragging' : ''} ${isWrapping ? 'is-wrapping' : ''}`} role="region" aria-label="Carousel des modules de flotte" tabIndex={0} onKeyDown={handleCarouselKeyDown} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ '--active-card': activeCard, '--drag-offset': `${dragOffset}px` } as CSSProperties}>
-            {[...fleetCards, ...fleetCards, ...fleetCards].map((card, index) => {
-              const offset = index - activeCard
-              const normalizedOffset = offset > 3 ? offset - 6 : offset < -3 ? offset + 6 : offset
-              return <button key={`${card.type}-${index}`} className={`fleet-card ${card.position} ${normalizedOffset === 0 ? 'is-active' : ''} ${normalizedOffset === -1 ? 'is-prev' : ''} ${normalizedOffset === 1 ? 'is-next' : ''} ${normalizedOffset === -2 ? 'is-far-prev' : ''} ${normalizedOffset === 2 ? 'is-far-next' : ''} ${Math.abs(normalizedOffset) > 2 ? 'is-hidden' : ''}`} style={{ '--card-image': `url(${card.image})`, '--drag-x': normalizedOffset === 0 ? `${dragOffset}px` : '0px' } as CSSProperties} onClick={() => { if (!dragMoved.current) setActiveCard(index) }} aria-label={`Voir ${card.title}`}>
-                <span className="fleet-card-index">{String((index % fleetCards.length) + 1).padStart(2, '0')}</span><span className="fleet-card-type">{card.type}</span><strong>{card.title}</strong><small>{card.meta}</small><span className="fleet-card-arrow">↗</span>
-              </button>
-            })}
+          <div>
+            <p className="section-kicker">
+              <span>02 / 10</span>
+              <span className="kicker-line" />
+              <span>Le parc et son exploitation</span>
+            </p>
+            <h2 id="fleet-title">
+              Une vision
+              <br />
+              <em>en profondeur.</em>
+            </h2>
           </div>
-          <div className="fleet-controls"><span className="carousel-loop-status" aria-live="polite"><i /> Défilement automatique</span><button onClick={() => goToCard(-1)} aria-label="Module précédent">←</button><span>Faire défiler pour explorer <b>{String((activeCard % fleetCards.length) + 1).padStart(2, '0')} / 06</b></span><button onClick={() => goToCard(1)} aria-label="Module suivant">→</button></div>
+          <p>
+            Chaque véhicule porte sa fiche technique, ses compteurs, ses
+            documents et ses photos. Autour de lui : missions, affectations,
+            pleins, maintenances, incidents, documents à échéance et équipements
+            de bord.
+          </p>
+        </div>
+        <div className="fleet-stage">
+          <div
+            className={`fleet-track ${isDragging ? "is-dragging" : ""} ${isWrapping ? "is-wrapping" : ""}`}
+            role="region"
+            aria-label="Carousel des modules de flotte"
+            tabIndex={0}
+            onKeyDown={handleCarouselKeyDown}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            style={
+              {
+                "--active-card": activeCard,
+                "--drag-offset": `${dragOffset}px`,
+              } as CSSProperties
+            }
+          >
+            {[...fleetCards, ...fleetCards, ...fleetCards].map(
+              (card, index) => {
+                const offset = index - activeCard;
+                const normalizedOffset =
+                  offset > 3 ? offset - 6 : offset < -3 ? offset + 6 : offset;
+                return (
+                  <button
+                    key={`${card.type}-${index}`}
+                    className={`fleet-card ${card.position} ${normalizedOffset === 0 ? "is-active" : ""} ${normalizedOffset === -1 ? "is-prev" : ""} ${normalizedOffset === 1 ? "is-next" : ""} ${normalizedOffset === -2 ? "is-far-prev" : ""} ${normalizedOffset === 2 ? "is-far-next" : ""} ${Math.abs(normalizedOffset) > 2 ? "is-hidden" : ""}`}
+                    style={
+                      {
+                        "--card-image": `url(${card.image})`,
+                        "--drag-x":
+                          normalizedOffset === 0 ? `${dragOffset}px` : "0px",
+                      } as CSSProperties
+                    }
+                    onClick={() => {
+                      if (!dragMoved.current) setActiveCard(index);
+                    }}
+                    aria-label={`Voir ${card.title}`}
+                  >
+                    <span className="fleet-card-index">
+                      {String((index % fleetCards.length) + 1).padStart(2, "0")}
+                    </span>
+                    <span className="fleet-card-type">{card.type}</span>
+                    <strong>{card.title}</strong>
+                    <small>{card.meta}</small>
+                    <span className="fleet-card-arrow">↗</span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+          <div className="fleet-controls">
+            <span className="carousel-loop-status" aria-live="polite">
+              <i /> Défilement automatique
+            </span>
+            <button onClick={() => goToCard(-1)} aria-label="Module précédent">
+              ←
+            </button>
+            <span>
+              Faire défiler pour explorer{" "}
+              <b>
+                {String((activeCard % fleetCards.length) + 1).padStart(2, "0")}{" "}
+                / 06
+              </b>
+            </span>
+            <button onClick={() => goToCard(1)} aria-label="Module suivant">
+              →
+            </button>
+          </div>
         </div>
       </section>
 
